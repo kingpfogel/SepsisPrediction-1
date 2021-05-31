@@ -7,22 +7,26 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import WeightedRandomSampler
 import torch.optim as optim
 
+import sys
+sys.path.append("C:/Users/Kai/PycharmProjects/MedInf/SepsisPrediction-1-master/src/sepsis_prediction_lstm")
+
 from utils import train, evaluate, best_evaluate
 from mydatasets import calculate_num_features, VisitSequenceWithLabelDataset, time_collate_fn
 from mymodels import MyLSTM
 
 torch.manual_seed(0)
+PATH_TRAIN_SEQS = "C:/Users/Kai/PycharmProjects/MedInf/SepsisPrediction-1-master/data/sepsis/processed_data_25_6/sepsis.seqs.train"
+PATH_TRAIN_LABELS = "C:/Users/Kai/PycharmProjects/MedInf/SepsisPrediction-1-master/data/sepsis/processed_data_25_6/sepsis.labels.train"
+PATH_VALID_SEQS = "C:/Users/Kai/PycharmProjects/MedInf/SepsisPrediction-1-master/data/sepsis/processed_data_25_6/sepsis.seqs.validation"
+PATH_VALID_LABELS = "C:/Users/Kai/PycharmProjects/MedInf/SepsisPrediction-1-master/data/sepsis/processed_data_25_6/sepsis.labels.validation"
+PATH_TEST_SEQS = "C:/Users/Kai/PycharmProjects/MedInf/SepsisPrediction-1-master/data/sepsis/processed_data_25_6/sepsis.seqs.test"
+PATH_TEST_LABELS = "C:/Users/Kai/PycharmProjects/MedInf/SepsisPrediction-1-master/data/sepsis/processed_data_25_6/sepsis.labels.test"
 
-PATH_TRAIN_SEQS = "./../../data/sepsis/processed_data/sepsis.seqs.train"
-PATH_TRAIN_LABELS = "./../../data/sepsis/processed_data/sepsis.labels.train"
-PATH_VALID_SEQS = "./../../data/sepsis/processed_data/sepsis.seqs.validation"
-PATH_VALID_LABELS = "./../../data/sepsis/processed_data/sepsis.labels.validation"
-PATH_TEST_SEQS = "./../../data/sepsis/processed_data/sepsis.seqs.test"
-PATH_TEST_LABELS = "./../../data/sepsis/processed_data/sepsis.labels.test"
-PATH_OUTPUT = "./../../out/best_model/"
+PATH_OUTPUT = "./../../out_25_6_FINALES_MODELL/best_model/"
+
 os.makedirs(PATH_OUTPUT, exist_ok=True)
 
-NUM_EPOCHS = 20
+NUM_EPOCHS = 30
 BATCH_SIZE = 64
 NUM_WORKERS = 0
 
@@ -49,7 +53,7 @@ for data, label in train_dataset:
     else:
         count_negative += 1
 
-weights = [count_negative if label == 1 else count_positive for data, label in train_dataset]
+weights = [count_positive if label == 0 else count_negative for data, label in train_dataset]
 sampler = WeightedRandomSampler(weights, num_samples=len(train_dataset), replacement=True)
 train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, collate_fn=time_collate_fn, sampler=sampler, num_workers=NUM_WORKERS)
 
@@ -59,9 +63,9 @@ valid_loader = DataLoader(dataset=valid_dataset, batch_size=BATCH_SIZE, shuffle=
 test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False, collate_fn=time_collate_fn,
                          num_workers=NUM_WORKERS)
 
-model = MyLSTM(num_features)
+model = MyLSTM(num_features, 24, 6, 4)
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.005)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 device = torch.device("cpu")
 model.to(device)

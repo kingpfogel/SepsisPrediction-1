@@ -1,16 +1,18 @@
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.neural_network import MLPClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, matthews_corrcoef
 from sklearn.model_selection import GridSearchCV
-from sklearn.externals import joblib
+import joblib
 
-RANDOM_STATE = 41
+RANDOM_STATE = 42
 
 def select_model(X, y):
-    names = ["MyDT", "MyRF", "MyAdaBoost", "MyMLP"]
+    names = ["MyLogit", "MyDT", "MyRF", "MyAdaBoost", "MyMLP"]
 
     estimators = [
+        LogisticRegression(random_state=RANDOM_STATE),
         DecisionTreeClassifier(random_state=RANDOM_STATE), 
         RandomForestClassifier(random_state=RANDOM_STATE),
         AdaBoostClassifier(random_state=RANDOM_STATE),
@@ -19,11 +21,17 @@ def select_model(X, y):
 
     param_tests = [
         {
-            'max_depth': range(1, 11, 1)
+            'max_iter' : range(1000, 5000, 500),
+            'class_weight' : ['balanced']
+        },
+        {
+            'max_depth': range(1, 11, 1),
+            'class_weight' : ['balanced']
         },
         {
             'n_estimators': range(10, 210, 10),
-            'max_depth': range(1, 11, 1)
+            'max_depth': range(1, 11, 1),
+            'class_weight' : ['balanced']
         },
         {
             'n_estimators': range(10, 310, 10),
@@ -34,8 +42,8 @@ def select_model(X, y):
         }
     ]
 
-    for i in range(0, 4, 1):
-        gsearch = GridSearchCV(estimators[i] , param_grid = param_tests[i], scoring='roc_auc', cv=5 )
+    for i in range(0, 5, 1):
+        gsearch = GridSearchCV(estimators[i] , param_grid = param_tests[i], scoring='roc_auc', cv=2)
         gsearch.fit(X, y)
         joblib.dump(gsearch.best_estimator_, './../../out/best_model/' + names[i] + '.pkl')
         print("Best score: %0.3f" % gsearch.best_score_)
@@ -46,11 +54,11 @@ def select_model(X, y):
 
 
 def evaluate(X_train, X_test, y_train, y_test):
-    names = ["MyDT", "MyRF", "MyAdaBoost", "MyMLP"]
+    names = ["MyLogit", "MyDT", "MyRF", "MyAdaBoost", "MyMLP"]
     
     classifiers = []
 
-    for i in range(0, 4, 1):
+    for i in range(0, 5, 1):
         classifiers.append(joblib.load('./../../out/best_model/' + names[i] + '.pkl'))
     
     result = []

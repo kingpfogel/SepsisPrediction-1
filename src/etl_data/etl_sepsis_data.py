@@ -4,37 +4,40 @@ import pandas as pd
 from datetime import datetime
 from datetime import timedelta
 
-PATH_TRAIN = "./../../data/sepsis/train/train_sample_cleaned_pivoted_vital.csv"
-PATH_VALIDATION = "./../../data/sepsis/validation/valid_sample_cleaned_pivoted_vital.csv"
-PATH_TEST = "./../../data/sepsis/test/test_sample_cleaned_pivoted_vital.csv"
-PATH_OUTPUT = "./../../data/sepsis/processed_data/"
+PATH_TRAIN = r"C:\Users\Kai\PycharmProjects\MedInf\Train.csv"
+PATH_VALIDATION = r"C:\Users\Kai\PycharmProjects\MedInf\Test.csv"
+PATH_TEST = r"C:\Users\Kai\PycharmProjects\MedInf\Validation.csv"
+PATH_OUTPUT = r"C:\Users\Kai\PycharmProjects\MedInf\SepsisPrediction-1-master\data\sepsis\processed_data_25_6"
 
-def create_dataset(path, observation_window=12, prediction_window=6):
+def create_dataset(path, observation_window=25, prediction_window=6):
     """
     :param path: path to the directory contains raw files.
     :param observation window: time interval we will use to identify relavant events
     :param prediction window: a fixed time interval that is to be used to make the prediction
     :return: List(pivot vital records), List(labels), time sequence data as a List of List of List.
     """
+    PATH_OUTPUT = r"C:\Users\Kai\PycharmProjects\MedInf\SepsisPrediction-1-master\data\sepsis\processed_data_"+str(observation_window)+"_"+str(prediction_window)
     seqs = []
     labels = []
     # load data from csv;
-    df = pd.read_csv(path)
+    df = pd.read_csv(path, sep=";")
 
     # construct features
-    grouped_df = df.groupby('icustay_id')
+    grouped_df = df.groupby('hadm_id')
     for name, group in grouped_df: 
         # calculate the index_hour
         # for the patients who have the sepsis, index hour is #prediction_window hours prior to the onset time
-        # for the patients who don't have the sepsis, index hour is the last event time 
+        # for the patients who don't have the sepsis, index hour is the last event time
+        bla = group.iloc[-1, -1]
+        bla2 = group.iloc[-1, 1]
         if group.iloc[-1,-1] == 1:
             index_hour = datetime.strptime(group.iloc[-1,1], '%Y-%m-%d %H:%M:%S') - timedelta(hours=prediction_window)
         else:
             index_hour = datetime.strptime(group.iloc[-1,1], '%Y-%m-%d %H:%M:%S')
 
         # get the date in observation window
-        group['record_time'] = pd.to_datetime(group['record_time'])
-        filterd_group = group[(group['record_time'] >= (index_hour - timedelta(hours=observation_window))) & (group['record_time'] <= index_hour)]
+        group['admittime'] = pd.to_datetime(group['admittime'])
+        filterd_group = group[(group['admittime'] >= (index_hour - timedelta(hours=observation_window))) & (group['admittime'] <= index_hour)]
         # construct the records seqs and label seqs
         data = filterd_group.iloc[:, 2:-1]
         record_seqs = []

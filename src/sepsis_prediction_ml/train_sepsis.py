@@ -6,12 +6,15 @@ from mydatasets import construct_features
 from feature_importance import feature_importance
 from mymodels import select_model, evaluate
 
-PATH_TRAIN_SEQS = "./../../data/sepsis/processed_data/sepsis.seqs.train"
-PATH_TRAIN_LABELS = "./../../data/sepsis/processed_data/sepsis.labels.train"
-PATH_VALID_SEQS = "./../../data/sepsis/processed_data/sepsis.seqs.validation"
-PATH_VALID_LABELS = "./../../data/sepsis/processed_data/sepsis.labels.validation"
-PATH_TEST_SEQS = "./../../data/sepsis/processed_data/sepsis.seqs.test"
-PATH_TEST_LABELS = "./../../data/sepsis/processed_data/sepsis.labels.test"
+import sys
+sys.path.append("C:/Users/Kai/PycharmProjects/MedInf/SepsisPrediction-1-master/src/sepsis_prediction_lstm")
+
+PATH_TRAIN_SEQS = "./../../data/sepsis/processed_data_12_6_test/sepsis.seqs.train"
+PATH_TRAIN_LABELS = "./../../data/sepsis/processed_data_12_6_test/sepsis.labels.train"
+PATH_VALID_SEQS = "./../../data/sepsis/processed_data_12_6_test/sepsis.seqs.validation"
+PATH_VALID_LABELS = "./../../data/sepsis/processed_data_12_6_test/sepsis.labels.validation"
+PATH_TEST_SEQS = "./../../data/sepsis/processed_data_12_6_test/sepsis.seqs.test"
+PATH_TEST_LABELS = "./../../data/sepsis/processed_data_12_6_test/sepsis.labels.test"
 
 # loading data
 print('===> Loading entire datasets')
@@ -31,7 +34,7 @@ X_train_valid = X_train + X_valid
 y_train_valid = y_train + y_valid
 
 # get the feature importance
-feature_importance(X_train_valid, y_train_valid)
+# feature_importance(X_train_valid, y_train_valid)
 
 # prune the parameters by GridSearchCV 
 select_model(X_train_valid, y_train_valid)
